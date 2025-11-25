@@ -8,21 +8,23 @@
 import Foundation
 import WeatherKit
 import CoreLocation
+import Dependencies
 
 public class WeatherService {
-  public static let shared = WeatherService()
-  private let weatherKitService = WeatherKit.WeatherService()
+  private let service: WeatherKit.WeatherService = .init()
+  private let location: CLLocation
+  private let locationName: String
   
-  // SF coordinates
-  private let sanFranciscoLocation = CLLocation(
-    latitude: 37.7749,
-    longitude: -122.4194
-  )
-  
-  private init() {}
+  public init(
+    location: CLLocation = CLLocation(latitude: 37.7749, longitude: -122.4194),
+    locationName: String = "San Francisco"
+  ) {
+    self.location = location
+    self.locationName = locationName
+  }
   
   public func fetchCurrentWeather() async throws -> WeatherData {
-    let weather = try await weatherKitService.weather(for: sanFranciscoLocation)
+    let weather = try await service.weather(for: location)
     let current = weather.currentWeather
     
     return WeatherData(
@@ -31,18 +33,30 @@ public class WeatherService {
       symbolName: current.symbolName,
       humidity: current.humidity,
       windSpeed: current.wind.speed.value,
-      locationName: "San Francisco",
+      locationName: locationName,
       lastUpdated: Date()
     )
   }
   
   public func fetchHourlyForecast() async throws -> [HourWeather] {
-    let weather = try await weatherKitService.weather(for: sanFranciscoLocation)
-    return Array(weather.hourlyForecast.prefix(24)) // Next 24 hours
+    let weather = try await service.weather(for: location)
+    return Array(weather.hourlyForecast.prefix(24))
   }
   
   public func fetchDailyForecast() async throws -> [DayWeather] {
-    let weather = try await weatherKitService.weather(for: sanFranciscoLocation)
-    return Array(weather.dailyForecast.prefix(7)) // Next 7 days
+    let weather = try await service.weather(for: location)
+    return Array(weather.dailyForecast.prefix(7))
   }
+}
+
+// MARK: - Dependency Injection
+extension DependencyValues {
+  public var weatherService: WeatherService {
+    get { self[WeatherService.self] }
+    set { self[WeatherService.self] = newValue }
+  }
+}
+
+extension WeatherService: DependencyKey {
+  public static let liveValue = WeatherService()
 }

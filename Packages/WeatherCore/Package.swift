@@ -10,10 +10,15 @@ let package = Package(
   products: [
     .library(name: "WeatherCore", targets: ["WeatherCore"])
   ],
+  dependencies: [
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0")
+  ],
   targets: [
     .target(
       name: "WeatherCore",
-      dependencies: [],
+      dependencies: [
+        .product(name: "Dependencies", package: "swift-dependencies")
+      ],
       path: "Sources"
     )
   ]
