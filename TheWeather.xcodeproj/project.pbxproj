@@ -7,9 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		998B3BA42ED5CE59008A013D /* PovioKitCore in Frameworks */ = {isa = PBXBuildFile; productRef = 998B3BA32ED5CE59008A013D /* PovioKitCore */; };
+		998B3BA62ED5CE59008A013D /* PovioKitSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 998B3BA52ED5CE59008A013D /* PovioKitSwiftUI */; };
 		99EF3A2F2ED5A33200F00E6B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99EF3A2E2ED5A33200F00E6B /* WidgetKit.framework */; };
 		99EF3A312ED5A33200F00E6B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99EF3A302ED5A33200F00E6B /* SwiftUI.framework */; };
 		99EF3A3E2ED5A33300F00E6B /* TheWeatherWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 99EF3A2C2ED5A33200F00E6B /* TheWeatherWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		99EF3A962ED5A84800F00E6B /* WeatherCore in Frameworks */ = {isa = PBXBuildFile; productRef = 99EF3A472ED5A33300F00E6B /* WeatherCore */; };
+		99EF3A972ED5A84800F00E6B /* WeatherCore in Frameworks */ = {isa = PBXBuildFile; productRef = 99EF3A462ED5A33300F00E6B /* WeatherCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,7 +51,7 @@
 		99EF3A422ED5A33300F00E6B /* Exceptions for "TheWeatherWidget" folder in "TheWeatherWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = 99EF3A2B2ED5A33200F00E6B /* TheWeatherWidgetExtension */;
 		};
@@ -67,6 +71,11 @@
 			path = TheWeatherWidget;
 			sourceTree = "<group>";
 		};
+		99EF3AAD2ED5B51600F00E6B /* Packages */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Packages;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +83,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99EF3A972ED5A84800F00E6B /* WeatherCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,7 +91,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99EF3A962ED5A84800F00E6B /* WeatherCore in Frameworks */,
+				998B3BA62ED5CE59008A013D /* PovioKitSwiftUI in Frameworks */,
 				99EF3A312ED5A33200F00E6B /* SwiftUI.framework in Frameworks */,
+				998B3BA42ED5CE59008A013D /* PovioKitCore in Frameworks */,
 				99EF3A2F2ED5A33200F00E6B /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -92,6 +105,7 @@
 		99EF39F92ED5A10800F00E6B = {
 			isa = PBXGroup;
 			children = (
+				99EF3AAD2ED5B51600F00E6B /* Packages */,
 				99EF3A042ED5A10800F00E6B /* TheWeather */,
 				99EF3A322ED5A33200F00E6B /* TheWeatherWidget */,
 				99EF3A2D2ED5A33200F00E6B /* Frameworks */,
@@ -136,9 +150,11 @@
 			);
 			fileSystemSynchronizedGroups = (
 				99EF3A042ED5A10800F00E6B /* TheWeather */,
+				99EF3AAD2ED5B51600F00E6B /* Packages */,
 			);
 			name = TheWeather;
 			packageProductDependencies = (
+				99EF3A462ED5A33300F00E6B /* WeatherCore */,
 			);
 			productName = TheWeather;
 			productReference = 99EF3A022ED5A10800F00E6B /* TheWeather.app */;
@@ -161,6 +177,9 @@
 			);
 			name = TheWeatherWidgetExtension;
 			packageProductDependencies = (
+				99EF3A472ED5A33300F00E6B /* WeatherCore */,
+				998B3BA32ED5CE59008A013D /* PovioKitCore */,
+				998B3BA52ED5CE59008A013D /* PovioKitSwiftUI */,
 			);
 			productName = TheWeatherWidgetExtension;
 			productReference = 99EF3A2C2ED5A33200F00E6B /* TheWeatherWidgetExtension.appex */;
@@ -193,6 +212,9 @@
 			);
 			mainGroup = 99EF39F92ED5A10800F00E6B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				998B3BA22ED5CE59008A013D /* XCRemoteSwiftPackageReference "PovioKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 99EF3A032ED5A10800F00E6B /* Products */;
 			projectDirPath = "";
@@ -460,7 +482,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7G58AP3AJX;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TheWeatherWidget/Info.plist;
+				INFOPLIST_FILE = TheWeatherWidget/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TheWeatherWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
@@ -492,7 +514,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7G58AP3AJX;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TheWeatherWidget/Info.plist;
+				INFOPLIST_FILE = TheWeatherWidget/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TheWeatherWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
@@ -547,6 +569,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		998B3BA22ED5CE59008A013D /* XCRemoteSwiftPackageReference "PovioKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/povio/PovioKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		998B3BA32ED5CE59008A013D /* PovioKitCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 998B3BA22ED5CE59008A013D /* XCRemoteSwiftPackageReference "PovioKit" */;
+			productName = PovioKitCore;
+		};
+		998B3BA52ED5CE59008A013D /* PovioKitSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 998B3BA22ED5CE59008A013D /* XCRemoteSwiftPackageReference "PovioKit" */;
+			productName = PovioKitSwiftUI;
+		};
+		99EF3A462ED5A33300F00E6B /* WeatherCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WeatherCore;
+		};
+		99EF3A472ED5A33300F00E6B /* WeatherCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WeatherCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 99EF39FA2ED5A10800F00E6B /* Project object */;
 }

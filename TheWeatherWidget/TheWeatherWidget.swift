@@ -7,82 +7,35 @@
 
 import WidgetKit
 import SwiftUI
-
-struct Provider: AppIntentTimelineProvider {
-  func placeholder(in context: Context) -> SimpleEntry {
-    SimpleEntry(date: Date(), configuration: ConfigurationAppIntent())
-  }
-  
-  func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-    SimpleEntry(date: Date(), configuration: configuration)
-  }
-  
-  func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-    var entries: [SimpleEntry] = []
-    
-    // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-    let currentDate = Date()
-    for hourOffset in 0 ..< 5 {
-      let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-      let entry = SimpleEntry(date: entryDate, configuration: configuration)
-      entries.append(entry)
-    }
-    
-    return Timeline(entries: entries, policy: .atEnd)
-  }
-  
-  //    func relevances() async -> WidgetRelevances<ConfigurationAppIntent> {
-  //        // Generate a list containing the contexts this widget is relevant in.
-  //    }
-}
-
-struct SimpleEntry: TimelineEntry {
-  let date: Date
-  let configuration: ConfigurationAppIntent
-}
-
-struct TheWeatherWidgetEntryView : View {
-  var entry: Provider.Entry
-  
-  var body: some View {
-    VStack {
-      Text("Time:")
-      Text(entry.date, style: .time)
-      
-      Text("Favorite Emoji:")
-      Text(entry.configuration.favoriteEmoji)
-    }
-  }
-}
+import WeatherCore
 
 struct TheWeatherWidget: Widget {
   let kind: String = "TheWeatherWidget"
-  
-  var body: some WidgetConfiguration {
-    AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
-      TheWeatherWidgetEntryView(entry: entry)
-        .containerBackground(.fill.tertiary, for: .widget)
-    }
-  }
-}
 
-extension ConfigurationAppIntent {
-  fileprivate static var smiley: ConfigurationAppIntent {
-    let intent = ConfigurationAppIntent()
-    intent.favoriteEmoji = "😀"
-    return intent
-  }
-  
-  fileprivate static var starEyes: ConfigurationAppIntent {
-    let intent = ConfigurationAppIntent()
-    intent.favoriteEmoji = "🤩"
-    return intent
+  var body: some WidgetConfiguration {
+    AppIntentConfiguration(kind: kind, intent: ConfigurationIntent.self, provider: TimelineProvider()) { entry in
+      MainView(entry: entry)
+    }
+    .configurationDisplayName("The Weather")
+    .description("Stay updated with current weather conditions.")
+    .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
   }
 }
 
 #Preview(as: .systemSmall) {
   TheWeatherWidget()
 } timeline: {
-  SimpleEntry(date: .now, configuration: .smiley)
-  SimpleEntry(date: .now, configuration: .starEyes)
+  WeatherEntry(date: .now, weatherData: .preview, hourlyForecast: HourlyWeather.preview, configuration: .basic)
+}
+
+#Preview(as: .systemMedium) {
+  TheWeatherWidget()
+} timeline: {
+  WeatherEntry(date: .now, weatherData: .preview, hourlyForecast: HourlyWeather.preview, configuration: .basic)
+}
+
+#Preview(as: .systemLarge) {
+  TheWeatherWidget()
+} timeline: {
+  WeatherEntry(date: .now, weatherData: .preview, hourlyForecast: HourlyWeather.preview, configuration: .extended)
 }

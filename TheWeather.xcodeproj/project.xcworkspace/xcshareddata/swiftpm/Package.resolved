@@ -1,0 +1,24 @@
+{
+  "originHash" : "9c2a75659947852cf75dc7d11a9bc25d8c0124153e785bae52b56d4db619256e",
+  "pins" : [
+    {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher",
+      "state" : {
+        "revision" : "d30a5fad881137e2267f96a8e3fc35c58999bb94",
+        "version" : "8.6.2"
+      }
+    },
+    {
+      "identity" : "poviokit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/povio/PovioKit.git",
+      "state" : {
+        "revision" : "10738d3149bec1b10c2541c9d4ca66c63b12313d",
+        "version" : "6.0.1"
+      }
+    }
+  ],
+  "version" : 3
+}
