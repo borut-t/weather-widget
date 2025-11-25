@@ -1,0 +1,470 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# SwiftUI Best Practices
+
+## Code Organization
+
+### View Structure
+- Break down complex views into smaller, reusable components
+- Use extensions to organize view code by functionality
+- Follow a consistent structure for all view files:
+  ```swift
+  struct MyView: View {
+    @State private var someState = false
+    
+    var body: some View {
+      mainContent
+    }
+  }
+  
+  // MARK: - View Builders
+  private extension MyView {
+    var mainContent: some View {
+      VStack {
+        headerView
+        contentView
+        footerView
+      }
+    }
+    
+    var headerView: some View {
+      // Header implementation
+    }
+    
+    var contentView: some View {
+      // Content implementation
+    }
+  }
+  
+  // MARK: - Private Methods
+  private extension MyView {
+    func calculateRange() {
+      // Range implementation
+    }
+  }
+  ```
+
+### File Organization
+- Create separate files for views that are:
+  - Reused across multiple screens
+  - Complex (more than 150-200 lines)
+  - Logically distinct components
+
+### View File Splitting
+
+For complex views, split view components into separate files using extensions with the `+` naming convention:
+
+**Main view file** (`HomeView.swift`):
+```swift
+struct HomeView: View {
+  @State private var viewModel: HomeViewModel = .init()
+  
+  var body: some View {
+    ScrollView {
+      VStack(spacing: 0) {
+        contentHeader
+        progressBar
+        contentView
+      }
+    }
+  }
+}
+
+// MARK: - View Builders
+extension HomeView {
+  var contentHeader: some View {
+    Text("Header")
+  }
+}
+```
+
+**Extension file** (`HomeView+ProgressBar.swift`):
+```swift
+extension HomeView {
+  var progressBar: some View {
+    // Complex progress bar implementation
+    ProgressView(value: viewModel.progressPercentage)
+  }
+}
+```
+
+**Extension file** (`HomeView+ContentView.swift`):
+```swift
+extension HomeView {
+  @ViewBuilder
+  var contentView: some View {
+    // Complex content implementation
+    if viewModel.items.isEmpty {
+      emptyStateView
+    } else {
+      itemsList
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension HomeView {
+  var emptyStateView: some View {
+    // Empty state implementation
+  }
+  
+  var itemsList: some View {
+    // Items list implementation
+  }
+}
+```
+
+**Benefits:**
+- Keeps files focused and manageable (< 200 lines)
+- Improves code organization and readability
+- Makes it easier to find specific UI components
+- Reduces merge conflicts in team development
+
+## View Composition
+
+### View Builders
+- Always prefer computed properties (var getters) over functions for view building:
+  ```swift
+  // PREFERRED: Use computed properties for view sections
+  private extension MyView {
+    var userInfoSection: some View {
+      VStack(alignment: .leading) {
+        Text(user.name)
+          .font(.headline)
+        Text(user.email)
+          .font(.subheadline)
+      }
+    }
+  }
+  ```
+
+- Create separate View components when parameters are needed:
+  ```swift
+  // PREFERRED: Create a separate View when parameters are needed
+  struct ItemRowView: View {
+    let item: Item
+    
+    var body: some View {
+      VStack(alignment: .leading) {
+        Text(item.title)
+          .font(.headline)
+        Text(item.subtitle)
+          .font(.subheadline)
+      }
+    }
+  }
+  
+  // Usage:
+  List {
+    ForEach(items) { item in
+      ItemRowView(item: item)
+    }
+  }
+  ```
+
+- Avoid ViewBuilder functions that take parameters:
+  ```swift
+  // AVOID: Functions with parameters for view building
+  private extension MyView {
+    @ViewBuilder
+    func customCell(for item: Item) -> some View {
+      VStack(alignment: .leading) {
+        Text(item.title)
+          .font(.headline)
+        Text(item.subtitle)
+          .font(.subheadline)
+      }
+    }
+  }
+  ```
+
+### Modifiers
+- Create custom view modifiers for reused styling:
+  ```swift
+  struct PrimaryButtonStyle: ViewModifier {
+    func body(content: Content) -> some View {
+      content
+        .padding()
+        .background(Color.blue)
+        .foregroundColor(.white)
+        .cornerRadius(10)
+    }
+  }
+  
+  extension View {
+    func primaryButtonStyle() -> some View {
+      self.modifier(PrimaryButtonStyle())
+    }
+  }
+  ```
+
+## State Management
+
+### Property Wrappers
+- Use the appropriate property wrapper for each use case:
+  - `@State` for simple view-local state
+  - `@Binding` for state passed from parent views
+  - `@ObservedObject` for external reference types that conform to ObservableObject
+  - `@StateObject` for view-owned ObservableObject instances
+  - `@EnvironmentObject` for dependencies shared across the view hierarchy
+  - `@AppStorage` for persisting simple values in UserDefaults
+  - `@SceneStorage` for preserving UI state during scene transitions
+
+### State Containment
+- Keep state at the highest level necessary, but no higher
+- Pass only required state to child views using bindings
+- Use view models to encapsulate complex state logic
+- Use `@Observable` macro for view models (modern Swift observation framework)
+- When injecting dependencies with `@Observable`, mark them with `@ObservationIgnored`
+
+### Observable Pattern
+
+Use the modern `@Observable` macro for ViewModels:
+```swift
+@Observable
+final class ExampleViewModel {
+  @ObservationIgnored @Dependency(\.router) var router
+  
+  var isLoading: Bool = false
+  var data: [Item] = []
+  
+  init() { /* -- */ }
+}
+
+// In the View:
+struct ExampleView: View {
+  @State private var viewModel: ExampleViewModel = .init()
+  
+  var body: some View {
+    // View automatically updates when viewModel properties change
+    Text(viewModel.data.count.description)
+  }
+}
+```
+
+## Performance Optimization
+
+### View Updates
+- Use `@Equatable` for views with expensive body calculations
+- Implement `Equatable` for custom model types used in ForEach
+- Avoid expensive computations in view body
+- Use `id(_:)` modifier to control view identity
+
+### Memory Management
+- Avoid capturing self in closures when not needed
+- Use weak references in closures that outlive the view
+- Prefer value types (structs) over reference types (classes) for models
+
+## Accessibility
+
+### Basic Support
+- Provide meaningful accessibility labels and hints
+- Use semantic UI elements (Button, Toggle, etc.) instead of custom gestures when possible
+- Support dynamic type by using scalable fonts
+- Test with VoiceOver enabled
+
+### Implementation
+```swift
+Button(action: handleButtonTap) {
+  Image(systemName: "plus")
+}
+.accessibilityLabel("Add item")
+.accessibilityHint("Adds a new item to your list")
+```
+
+## SwiftUI Idioms
+
+### Conditional Views
+- Use ternary operators for simple conditional views
+- Use if-else statements in ViewBuilder contexts for more complex conditions
+- Extract complex conditional logic to computed properties
+
+```swift
+// Simple condition
+var body: some View {
+  VStack {
+    isLoading ? ProgressView() : contentView
+  }
+}
+
+// Complex condition
+var body: some View {
+  VStack {
+    if isLoading {
+      ProgressView()
+    } else if items.isEmpty {
+      emptyStateView
+    } else {
+      contentView
+    }
+  }
+}
+```
+
+### Lists and Collections
+- Use `LazyVStack` and `LazyHStack` for large collections
+- Implement pagination for large data sets
+- Use `ForEach` with stable identifiers
+- Extract list item views to separate components
+
+```swift
+List {
+  ForEach(items) { item in
+    ItemRowView(item: item)
+  }
+}
+```
+
+## Error Handling
+
+### User Feedback
+- Display errors in a user-friendly way
+- Provide actionable error messages
+- Use alerts for critical errors, inline messages for non-critical ones
+
+### Implementation
+```swift
+struct ContentView: View {
+  @State private var showingError = false
+  @State private var errorMessage = ""
+  
+  var body: some View {
+    VStack {
+      Button("Perform Action") {
+        do {
+          try performRiskyOperation()
+        } catch {
+          errorMessage = error.localizedDescription
+          showingError = true
+        }
+      }
+    }
+    .alert("Error", isPresented: $showingError) {
+      Button("OK") {}
+    } message: {
+      Text(errorMessage)
+    }
+  }
+}
+```
+
+## Testing
+
+### Preview Support
+- Create multiple previews for different states and device sizes
+- Use sample data for previews
+- Create a dedicated preview provider extension
+
+```swift
+struct ContentView_Previews: PreviewProvider {
+  static var previews: some View {
+    Group {
+      ContentView(viewModel: SampleViewModel.loading)
+        .previewDisplayName("Loading State")
+      
+      ContentView(viewModel: SampleViewModel.populated)
+        .previewDisplayName("Populated State")
+      
+      ContentView(viewModel: SampleViewModel.error)
+        .previewDisplayName("Error State")
+    }
+  }
+}
+```
+
+### Testability
+- Inject dependencies rather than creating them inside views
+- Separate business logic from view code
+- Use protocols for dependencies to enable mocking
+
+## Animation and Transitions
+
+### Best Practices
+- Use implicit animations for simple state changes
+- Use explicit animations for complex or coordinated animations
+- Use transitions for view appearance/disappearance
+- Keep animations subtle and purposeful
+
+```swift
+// Implicit animation
+Button("Toggle") {
+  isExpanded.toggle()
+}
+.animation(.spring(), value: isExpanded)
+
+// Explicit animation
+Button("Toggle") {
+  withAnimation(.spring()) {
+    isExpanded.toggle()
+  }
+}
+```
+
+## Documentation
+
+### Code Comments
+- Document complex logic or non-obvious implementations
+- Use /// for documentation comments that appear in Quick Help
+- Document parameters, return values, and throws clauses
+
+### Implementation
+```swift
+/// Fetches the user's profile information
+/// - Parameter userId: The unique identifier of the user
+/// - Returns: A user profile object
+/// - Throws: NetworkError if the request fails
+func fetchUserProfile(userId: String) async throws -> UserProfile {
+  // Implementation
+}
+```
+
+## SwiftUI and UIKit Integration
+
+### UIViewRepresentable
+- Use UIViewRepresentable to wrap UIKit views when SwiftUI alternatives don't exist
+- Implement the required methods: makeUIView and updateUIView
+- Use Coordinator for delegation
+
+### UIViewControllerRepresentable
+- Use UIViewControllerRepresentable to wrap UIKit view controllers
+- Implement makeUIViewController and updateUIViewController
+- Pass data through the Coordinator pattern
+
+## Responsive Design
+
+### Layout Adaptation
+- Use GeometryReader sparingly for size-dependent layouts
+- Prefer flexible layouts that adapt automatically
+- Use conditional modifiers based on environment properties
+
+```swift
+VStack {
+  if horizontalSizeClass == .compact {
+    compactLayoutView
+  } else {
+    regularLayoutView
+  }
+}
+```
+
+### Device Adaptation
+- Use environment properties to adapt to different devices
+- Support both portrait and landscape orientations
+- Test on multiple device sizes
+
+## Conclusion
+
+These best practices will help create SwiftUI code that is:
+- Maintainable and readable
+- Performant and efficient
+- Accessible and user-friendly
+- Testable and debuggable
+
+When implementing SwiftUI views, always consider:
+1. How to break down complex views into smaller components
+2. Where state should be managed
+3. How to optimize for performance
+4. How to make the UI accessible to all users

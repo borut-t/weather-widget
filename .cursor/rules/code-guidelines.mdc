@@ -1,0 +1,81 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Swift and SwiftUI
+
+## General Code Guidelines
+
+### Logging
+- **NEVER use `print()`** - use `Logger` instead (enforced by SwiftLint)
+- Logger is from `PovioKitCore` and aliased in `Common/Utils/Aliases.swift`
+- Available methods:
+  - `Logger.debug("message")` - For debugging information
+  - `Logger.info("message")` - For general information
+  - `Logger.warning("message")` - For warnings
+  - `Logger.error("message")` - For errors
+- Use with parameters for better context:
+  ```swift
+  Logger.debug("User logged in", params: ["userId": user.id])
+  Logger.error("Failed to fetch data", params: ["error": error.localizedDescription])
+  ```
+
+### Code Style
+- Use implicit returns when possible, omitting "return" on one-liner returns:
+  ```swift
+  // Good
+  var isValid: Bool {
+    email.isEmpty && password.isEmpty
+  }
+  
+  // Avoid
+  var isValid: Bool {
+    return email.isEmpty && password.isEmpty
+  }
+  ```
+
+### Comments
+- Skip obvious comments in code - don't add comments that simply restate what the code is doing
+- Only add comments for complex logic, non-obvious implementations, or to explain "why" rather than "what"
+- Use `///` for documentation comments that appear in Quick Help
+- Document public APIs with parameters, returns, and throws clauses:
+  ```swift
+  /// Validates the user's registration code
+  /// - Parameter code: The registration code to validate
+  /// - Returns: True if valid, false otherwise
+  /// - Throws: NetworkError if validation fails
+  func validateCode(_ code: String) async throws -> Bool {
+    // ...
+  }
+  ```
+
+### Formatting
+- Use MARK comments to organize code sections:
+  ```swift
+  // MARK: - Public Methods
+  extension MyClass {
+    func publicMethod() { }
+  }
+  
+  // MARK: - Private Methods
+  private extension MyClass {
+    func privateMethod() { }
+  }
+  ```
+
+### Async/Await
+- Prefer `async/await` over completion handlers for asynchronous code
+- Use `Task { @MainActor in ... }` when updating UI from async contexts:
+  ```swift
+  Task { @MainActor in
+    isLoading = true
+    do {
+      let data = try await fetchData()
+      self.data = data
+    } catch {
+      Logger.error("Failed to fetch", params: ["error": error.localizedDescription])
+    }
+    isLoading = false
+  }
+  ```

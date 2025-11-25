@@ -1,0 +1,299 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# iOS App Architecture
+
+## Overview
+
+This iOS app uses a modified MVVM (Model-View-ViewModel) architecture with Routers for navigation. This architecture combines the benefits of MVVM with a clear separation of navigation responsibilities through Routers, all while leveraging UIKit's navigation capabilities with SwiftUI views.
+
+## Core Components
+
+Each screen in the application follows a consistent structure with these key files:
+
+1. `View/{ScreenName}View.swift` - SwiftUI view implementation
+2. `{ScreenName}ViewModel.swift` - State management and business logic
+3. `{ScreenName}Interactor.swift` - Data operations and business rules
+4. `{ScreenName}ViewModel+Models.swift` (optional) - ViewModel-specific models
+5. `View/{ScreenName}View+*.swift` (optional) - View extensions for complex components
+
+### Component Responsibilities
+
+#### View
+
+The View is a SwiftUI view that renders the UI. It observes the ViewModel for state changes and dispatches user actions to the ViewModel.
+
+```swift
+struct ExampleView: View {
+  @State private var viewModel: ExampleViewModel
+  
+  var body: some View {
+    ScrollView {
+      VStack(spacing: 0) {
+        // UI components
+      }
+      .padding(.horizontal, 24)
+      .padding(.vertical, 24)
+    }
+  }
+}
+
+// MARK: - View Builders
+private extension ExampleView {
+  var someComponent: some View {
+    // Component implementation
+  }
+}
+```
+
+#### ViewModel
+
+The ViewModel acts as a mediator between the View and the Interactor. It:
+- Exposes observable state for the View
+- Processes user actions
+- Delegates data operations to the Interactor
+- Triggers navigation through the Router
+
+```swift
+@Observable
+final class ExampleViewModel {
+  @ObservationIgnored @Dependency(\.router) var router
+  private let interactor: ExampleInteractor = .init()
+
+  var someResult: InputFieldResult = .none
+  var isLoading: Bool = false
+  
+  init() { /* -- */ }
+}
+
+// MARK: - Public Methods
+extension ExampleViewModel {
+  var isFormValid: Bool {
+    someResult.isValid
+  }
+
+  func actionTapped() {
+    // Handle user action
+    router.navigate(to: .nextScreen)
+  }
+}
+
+// MARK: - Private Methods
+private extension ExampleViewModel { /* -- */ }
+```
+
+#### Interactor
+
+The Interactor handles business logic and data operations. It:
+- Communicates with services and repositories
+- Processes and transforms data
+- Implements business rules
+
+```swift
+final class ExampleInteractor {
+  init() { /* -- */ }
+}
+
+// MARK: - Public Methods
+extension ExampleInteractor {
+  func getData(completion: @escaping (Result<SomeData, Error>) -> Void) {
+    // Implement data fetching logic
+  }
+}
+
+// MARK: - Private Methods
+private extension ExampleInteractor {
+  // Private helper methods
+}
+```
+
+## Creating New Screens
+
+When creating a new screen, follow these steps:
+
+1. Create a new folder for the screen in the Scenes directory
+2. Create all files defined in the "Core components" section of this document
+3. Implement the required functionality in each file
+
+## Code Organization Guidelines
+
+### File Structure
+
+- Keep each component in its own file
+- Use extensions to organize code within files
+- Place UI components in private ViewBuilders extensions in View files
+- Group related functionality in extensions with appropriate MARK comments
+- Follow the established naming conventions:
+  - `View/{ScreenName}View.swift`
+  - `{ScreenName}ViewModel.swift`
+  - `{ScreenName}Interactor.swift`
+
+### Complex View Organization
+
+For complex views with many subcomponents, split the view into multiple files using the `+` convention:
+
+```
+Home/
+  View/
+    HomeView.swift              # Main view structure
+    HomeView+ContentView.swift  # Content section
+    HomeView+ProgressBar.swift  # Progress bar component
+    HomeView+WorkoutCard.swift  # Workout card component
+  HomeViewModel.swift
+  HomeViewModel+Models.swift    # ViewModel-specific models
+  HomeInteractor.swift
+```
+
+**File naming rules:**
+- Main view file: `{ScreenName}View.swift`
+- View extensions: `{ScreenName}View+{ComponentName}.swift`
+- ViewModel models: `{ScreenName}ViewModel+Models.swift`
+- View models (enums/structs for view): `{ScreenName}View+Models.swift`
+
+### Models Organization
+
+**ViewModel-specific models** go in `{ScreenName}ViewModel+Models.swift`:
+```swift
+extension HomeViewModel {
+  struct WorkoutSection: Identifiable {
+    let id = UUID()
+    let title: String
+    let workouts: [Workout]
+  }
+}
+```
+
+**View-specific models** (enums, configurations) go in `{ScreenName}View+Models.swift`:
+```swift
+extension LoginInputView {
+  enum Step {
+    case registrationCode
+    case email
+    case emailConfirmation
+  }
+}
+```
+
+### Reusable Components
+
+Place reusable UI components in `Common/Views/`:
+- Simple, generic components used across multiple screens
+- Should be self-contained and configurable
+- Examples: `InputField.swift`, `ActionButton.swift`, `SectionHeader.swift`
+
+## Navigation & Routing
+
+The app uses a custom navigation system via the `PovioNavigation` package.
+
+### Router Access
+
+Access the router in ViewModels using dependency injection:
+```swift
+@Observable
+final class ExampleViewModel {
+  @ObservationIgnored @Dependency(\.router) var router
+  // ...
+}
+```
+
+### Navigation Methods
+
+- `router.navigate(to:)` - Push a new screen onto the navigation stack
+- `router.present(for:)` - Present a screen modally
+
+### Defining Destinations
+
+All navigation destinations are defined in `Packages/PovioNavigation/Sources/Destinations/AppDestination.swift`:
+```swift
+enum AppDestination: Routable {
+  case workoutDetails(workout: Workout, user: User)
+  case startWorkout(user: User)
+  case addWellbeing
+  
+  var id: String {
+    switch self {
+    case .workoutDetails(let workout, _):
+      return "workoutDetails_\(workout.id)"
+    // ...
+    }
+  }
+}
+```
+
+## Dependency Injection
+
+The app uses the `Dependencies` package for dependency injection.
+
+### Injecting Dependencies
+
+Use `@Dependency` to inject dependencies in ViewModels and other components:
+```swift
+@Observable
+final class ExampleViewModel {
+  @ObservationIgnored @Dependency(\.router) var router
+  // ...
+}
+```
+
+**Important:** When using `@Dependency` with `@Observable` classes, always mark the dependency with `@ObservationIgnored` to prevent unnecessary view updates.
+
+### Common Dependencies
+
+- `@Dependency(\.router)` - App router for navigation
+
+## Design System
+
+The app uses a custom design system provided by the `AtlasUI` package.
+
+### Colors
+
+Access colors through the `Color` extension:
+```swift
+Color.Elevation.Surface.grouped1
+Color.Text.default1
+Color.Text.default2
+Color.Interactive.Contained.Primary.idle
+```
+
+### Typography
+
+Apply custom fonts using the `.customFont()` modifier:
+```swift
+Text("Title")
+  .customFont(.Display4.prominent1)
+
+Text("Body")
+  .customFont(.Body2.default)
+
+Text("Label")
+  .customFont(.Labels.Label1.default)
+```
+
+### Spacing
+
+Use `Dimensions.Spacing` for consistent spacing:
+```swift
+.padding(.horizontal, Dimensions.Spacing.space4)
+.padding(.vertical, Dimensions.Spacing.space6)
+```
+
+Common spacing values: `space2`, `space4`, `space6`, `space8`, `space10`
+
+## Diagram
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│             │     │             │     │             │
+│    View     │◄────│  ViewModel  │◄────│  Interactor │
+│             │     │             │     │             │
+└─────────────┘     └──────┬──────┘     └─────────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │             │
+                    │   Router    │
+                    │             │
+                    └─────────────┘
+```

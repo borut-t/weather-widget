@@ -1,0 +1,235 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Packages & Dependencies
+
+This document describes the custom Swift packages used in the ReBit project.
+
+## Local Packages
+
+All custom packages are located in `ReBit/Packages/` and managed via Swift Package Manager.
+
+### AtlasUI
+
+**Path:** `Packages/AtlasUI/`
+
+The app's design system package containing UI components, colors, fonts, and dimensions.
+
+**Key Features:**
+- Generated design tokens (colors, fonts, dimensions, icons)
+- Reusable UI components (buttons, inputs, drawers, etc.)
+- Custom view modifiers and extensions
+
+**Usage:**
+```swift
+import AtlasUI
+
+// Colors
+Color.Elevation.Surface.grouped1
+Color.Text.default1
+Color.Interactive.Contained.Primary.idle
+
+// Fonts
+Text("Title")
+  .customFont(.Display4.prominent1)
+
+// Dimensions
+.padding(.horizontal, Dimensions.Spacing.space4)
+
+// Button Styles
+Button("Action") { }
+  .buttonStyle(.pill)
+```
+
+**Main Components:**
+- `AttributedText` - Rich text rendering
+- `Button` - Various button styles
+- `Input` - Text fields and input components
+- `DatePicker` - Custom date picker
+- `Drawer` - Bottom sheets and modals
+- `Messages` - Toasts and alerts
+- `Skeleton` - Loading states
+
+### PovioNavigation
+
+**Path:** `Packages/PovioNavigation/`
+
+Custom navigation system for managing app navigation with type-safe routing.
+
+**Key Components:**
+- `Router` - Main navigation coordinator
+- `Routable` - Protocol for navigation destinations
+- `RouterDestinationMapper` - Maps destinations to views
+- `TabRootView` - Tab-based navigation root
+
+**Usage:**
+```swift
+// In ViewModel
+@ObservationIgnored @Dependency(\.router) var router
+
+// Navigate
+router.navigate(to: .workoutDetails(workout: workout, user: user))
+
+// Present modally
+router.present(for: .addWellbeing)
+```
+
+**Setup:**
+Define destinations in `AppDestination.swift`:
+```swift
+enum AppDestination: Routable {
+  case workoutDetails(workout: Workout, user: User)
+  case startWorkout(user: User)
+  
+  var id: String {
+    switch self {
+    case .workoutDetails(let workout, _):
+      return "workoutDetails_\(workout.id)"
+    case .startWorkout:
+      return "startWorkout"
+    }
+  }
+}
+```
+
+### Networking
+
+**Path:** `Packages/Networking/`
+
+Networking layer with Firebase integration and data models.
+
+**Key Components:**
+- `FirebaseClient` - Firebase API client
+- `AuthManager` - Authentication management
+- `KeychainService` - Secure storage
+- `ConnectionService` - Network connectivity monitoring
+
+**Models:**
+All shared data models are defined in this package:
+- `User`, `Workout`, `Wellbeing`, `Medication`, `Video`, `Tip`
+- Each model includes `+Preview` extension for SwiftUI previews
+
+**Usage:**
+```swift
+import Networking
+
+let authManager: AuthManager = .shared
+try await authManager.authorizeWithEmail(email)
+
+let firebaseClient: FirebaseClient = .init()
+try await firebaseClient.validateUser(userId: code)
+```
+
+### Bluetooth
+
+**Path:** `Packages/Bluetooth/`
+
+Bluetooth connectivity for heart rate monitors and other BLE devices.
+
+**Key Components:**
+- `BluetoothService` - BLE device management
+- Models for Bluetooth data structures
+
+### PushNotification
+
+**Path:** `Packages/PushNotification/`
+
+Push notification handling with Firebase Cloud Messaging integration.
+
+**Key Components:**
+- `PushNotificationManager` - Main notification coordinator
+- `PushNotificationProvider` - Provider protocol
+- `FirebaseNotificationProvider` - Firebase implementation
+- `PushNotificationOptions` - Configuration options
+
+### Utils
+
+**Path:** `Packages/Utils/`
+
+Utility classes and helpers.
+
+**Key Components:**
+- `DefaultsStorage` - UserDefaults wrapper
+- `DiskStorage` - File system storage
+
+## External Dependencies
+
+### Dependencies Package
+
+Used for dependency injection throughout the app.
+
+**Usage:**
+```swift
+import Dependencies
+
+@Dependency(\.router) var router
+@Dependency(\.customService) var service
+```
+
+**Key Points:**
+- Use `@ObservationIgnored` when injecting into `@Observable` classes
+- Define dependencies in extension of `DependencyValues`
+
+### PovioKit
+
+External package providing utilities and common functionality.
+
+**Imported Modules:**
+- `PovioKitCore` - Core utilities (Logger, etc.)
+- `PovioKitUtilities` - Additional utilities
+- `PovioKitSwiftUI` - SwiftUI helpers
+
+**Key Components:**
+- `Logger` - Logging utility (aliased in `Common/Utils/Aliases.swift`)
+- Various extensions and utilities
+
+### AlertToast
+
+Third-party package for displaying toast messages.
+
+**Usage:**
+```swift
+import AlertToast
+
+.toast(isPresenting: $showToast) {
+  AlertToast.loading
+}
+
+.toast(isPresenting: $showError, duration: 5) {
+  AlertToast.error(displayMode: .alert)
+}
+```
+
+## Package Organization Best Practices
+
+### When to Create a Package
+
+Create a new package when:
+- Code is reusable across multiple modules
+- Functionality has clear boundaries and responsibilities
+- You want to enforce modularity and separation of concerns
+- Code should be testable in isolation
+
+### Package Structure
+
+```
+MyPackage/
+  Package.swift              # Package manifest
+  README.md                  # Documentation
+  Sources/
+    MyPackage/
+      Core/                  # Core functionality
+      Models/                # Data models
+      Extensions/            # Extensions
+      Protocols/             # Protocols
+  Tests/
+    MyPackageTests/          # Unit tests
+```
+
+### Importing Packages
+
+- Import only what you need from each package
+- Keep package dependencies minimal
+- Prefer protocol-based APIs for better testability
